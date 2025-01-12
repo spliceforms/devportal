@@ -1,0 +1,38 @@
+# Name of your application. Used to uniquely configure containers.
+service: devportal
+
+# Name of the container image.
+image: spliceforms/devportal
+
+# Deploy to these servers.
+servers:
+  web:
+    - 146.190.11.138
+
+# Enable SSL auto certification via Let's Encrypt (and allow for multiple apps on one server).
+# Set ssl: false if using something like Cloudflare to terminate SSL (but keep host!).
+proxy:
+  ssl: true
+  host: devportal.apibanking.dev
+  app_port: 8080
+
+  healthcheck:
+    path: /q/health
+
+# Credentials for your image host.
+registry:
+  server: ghcr.io
+  username: USERNAME
+
+  # Always use an access token rather than real password (pulled from .kamal/secrets).
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# Configure builder setup.
+builder:
+  arch: amd64
+  dockerfile: src/main/docker/Dockerfile.jvm
+  context: .
+  args:
+    VERSION: 1.0.0-SNAPSHOT
+

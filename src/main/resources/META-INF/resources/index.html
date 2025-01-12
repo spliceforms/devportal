@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Portal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.12/htmx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="url"] {
+            width: 90%;
+        }
+    </style>
+    <script>
+        function decodeJWT(event) {
+            const url = event.detail.xhr.responseText;
+            const auth_token = url.match(/[?&]auth_token=([^&]+)/);
+
+            if (auth_token) {
+                const jwt = auth_token[1];
+                const decoded = jwt_decode(jwt);
+                const header = jwt_decode(jwt, { header: true });
+                document.getElementById('jwt-header').value = JSON.stringify(header, null, 2);
+                document.getElementById('jwt-payload').value = JSON.stringify(decoded, null, 2);
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <main>
+        <section>
+            <h1>Developer Portal</h1>
+            <p>This portal facilitates redirection to ReadMe documentation site with proper authentication.</p>
+            <p><a href="https://github.com/spliceforms/devportal" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-github"></i>
+                    Source Code
+                </a></p>
+            </p>
+
+
+            <h2>How it works:</h2>
+            <ol>
+                <li>Configure ReadMe settings in the backend for flexible management</li>
+                <li>Provide user information (name and email required) for ReadMe authentication</li>
+                <li>Optionally specify a page path for direct navigation to specific documentation</li>
+                <li>Choose to view the generated URL or perform immediate redirect</li>
+            </ol>
+        </section>
+
+        <section>
+            <form hx-post="/api/goto/readme" hx-target="#redirect_url" hx-on::after-request="decodeJWT(event)">
+                <fieldset>
+                    <legend>ReadMe Configuration</legend>
+                    <label for="readme_jwt_secret">Secret Key:</label>
+                    <input type="password" id="readme_jwt_secret" name="readme_jwt_secret" required minlength="16"
+                        autocomplete="off">
+
+                    <label for="readme_site_url">Site URL:</label>
+                    <input type="url" id="readme_site_url" name="readme_site_url" required
+                        value="https://spliceforms-group.readme.io/">
+
+                    <label for="readme_project">Project:</label>
+                    <input type="text" id="readme_project" name="readme_project" required value="spliceforms-sandbox">
+                </fieldset>
+
+                <fieldset>
+                    <legend>User Information</legend>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required value="John Doe">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required value="john.doe@example.com">
+                </fieldset>
+
+                <fieldset>
+                    <legend>Project Page Path (To redirect to a specific page)</legend>
+                    <label for="pagePath">Project Page Path:</label>
+                    <input type="text" id="pagePath" name="pagePath" placeholder="docs/vendor-payments">
+                </fieldset>
+
+                <fieldset>
+                    <legend>Action Type</legend>
+                    <input type="radio" id="return" name="redirect" value="false" checked>
+                    <label for="return">Show URL</label>
+
+                    <input type="radio" id="redirect" name="redirect" value="true">
+                    <label for="redirect">Redirect Now</label>
+                </fieldset>
+
+                <button type="submit">Generate URL</button>
+            </form>
+        </section>
+
+        <section>
+            <label for="redirect_url">Generated URL:</label>
+            <textarea id="redirect_url" rows="4" readonly></textarea>
+            <fieldset>
+                <legend>Decoded JWT</legend>
+                <textarea id="jwt-header" rows="4" readonly></textarea>
+                <textarea id="jwt-payload" rows="10" readonly></textarea>
+            </fieldset>
+        </section>
+    </main>
+</body>
+
+</html>
