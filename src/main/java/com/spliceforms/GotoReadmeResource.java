@@ -37,10 +37,13 @@ public class GotoReadmeResource {
             @FormParam("pagePath") String pagePath,
             @FormParam("redirect") boolean redirect) throws URISyntaxException, JoseException {
 
-        // the final URL to redirect to (either the site or a page in the site)
-        UriBuilder redirectUriBuilder = UriBuilder.fromUri(siteUrl)
+        // the final URL to redirect to (this should be the base URL)
+        UriBuilder redirectUriBuilder = UriBuilder.fromUri(siteUrl);
+
+        // and to send the user to a specfic project, page we need another path
+        String redirect_param = UriBuilder.fromUri(siteUrl)
                 .path(project)
-                .path(pagePath);
+                .path(pagePath).build().getPath();
 
         // One user can have access to multiple projects
         // In the demo, we only have one project
@@ -48,6 +51,7 @@ public class GotoReadmeResource {
         String auth_token = createJwt.createJwt(jwtSecret, name, email, projects);
 
         redirectUriBuilder.queryParam("auth_token", auth_token);
+        redirectUriBuilder.queryParam("redirect", redirect_param);
 
         URI redirectUri = redirectUriBuilder.build();
 
